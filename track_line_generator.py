@@ -34,11 +34,10 @@ class NewTrackLineGenerator:
             frame: Current video frame.
 
         Returns:
-            [line_left_bottom_p, cross_p, line_right_bottom_p]: A list contains three end points of left and right line
-            line_left_bottom_p: A list like [colIndex, rowIndex], it is the coordinate of the bottom end of left line.
-            cross_p: A list like [colIndex, rowIndex], it is the coordinate of intersection point of two lines.In the
-            other word, it is vanishing point.
-            line_right_bottom_p: A list like [colIndex, rowIndex], it is the coordinate of the bottom end of right line.
+            curve_pixel_left: A list whose size is height of the frame.
+                The i-th value is the col value of the pixel of left line in the i-th row.
+            curve_pixel_right: A list whose size is height of the frame.
+                The i-th value is the col value of the pixel of right line in the i-th row.
         """
         # Set scatter's xyz position on the line in real world
         x_start = self.base_param.head_to_back_wheel_d

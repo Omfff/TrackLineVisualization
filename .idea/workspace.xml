@@ -1,13 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="b9edb523-03de-4d7f-b810-5a7be5a44999" name="Default Changelist" comment="" />
+    <list default="true" id="b9edb523-03de-4d7f-b810-5a7be5a44999" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/track_line_generator.py" beforeDir="false" afterPath="$PROJECT_DIR$/track_line_generator.py" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
   <component name="ProjectId" id="1bEunX8P8BujLPiWF8ouUSNY14n" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showExcludedFiles" value="true" />
@@ -109,7 +116,8 @@
       <workItem from="1588686184096" duration="636000" />
       <workItem from="1588686966242" duration="9111000" />
       <workItem from="1588734205475" duration="2311000" />
-      <workItem from="1588737182405" duration="249000" />
+      <workItem from="1588737182405" duration="630000" />
+      <workItem from="1588769605821" duration="280000" />
     </task>
     <servers />
   </component>
@@ -171,12 +179,12 @@
     <state x="397" y="170" key="SettingsEditor/0.0.1792.1120@0.0.1792.1120" timestamp="1588230818239" />
     <state x="397" y="180" key="SettingsEditor/0.23.1792.1036@0.23.1792.1036" timestamp="1588210027679" />
     <state x="397" y="170" key="SettingsEditor/1792.23.1920.1057/0.0.1792.1120@0.0.1792.1120" timestamp="1588737173674" />
-    <state x="573" y="378" key="com.intellij.ide.util.TipDialog" timestamp="1588737183124">
+    <state x="573" y="371" key="com.intellij.ide.util.TipDialog" timestamp="1588769624442">
       <screen x="0" y="0" width="1792" height="1120" />
     </state>
     <state x="573" y="378" key="com.intellij.ide.util.TipDialog/0.0.1792.1120@0.0.1792.1120" timestamp="1588337560714" />
     <state x="573" y="373" key="com.intellij.ide.util.TipDialog/0.23.1792.1036@0.23.1792.1036" timestamp="1588209768794" />
-    <state x="573" y="378" key="com.intellij.ide.util.TipDialog/1792.0.1920.1080/0.0.1792.1120@0.0.1792.1120" timestamp="1588737183124" />
+    <state x="573" y="371" key="com.intellij.ide.util.TipDialog/1792.0.1920.1080/0.0.1792.1120@0.0.1792.1120" timestamp="1588769624442" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/world_to_image$yaml_reader.coverage" NAME="yaml_reader Coverage Results" MODIFIED="1588216995749" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
