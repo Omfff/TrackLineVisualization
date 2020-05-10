@@ -137,4 +137,3 @@ track_line.py
 test.py
 old_ransac.py
 *.csv
-test_result/

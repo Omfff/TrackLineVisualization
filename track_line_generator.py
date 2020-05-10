@@ -15,58 +15,88 @@ class NewTrackLineGenerator:
         How to use: An example:
             base_param = BaseParam(tread, wheelbase, head_height, front_wheel_to_head_d, param_yaml_path)
             track_line_generator = NewTrackLineGenerator(base_param)
-            points = track_line_generator.add_track_line(0)
+            left_line,right_line = track_line_generator.add_track_line(0)
     Attributes:
         base_param: A BaseParam class contains all the necessary car and camera parameters.
         steer_angle: Steering angle of front wheel.
         dir: Go straight or turn left or turn left.
+        line_color: (B,G,R) color, the line color of track lines on the frame when testing
+        curve_point_color: (B,G,R) color, the points color of track lines on the frame when testing
+        x_end: The furthest distance of the point on track in the real world.
     """
     def __init__(self, base_param):
         self.base_param = base_param
         self.steer_angle = 0
         self.dir = MID
+        self.line_color = (0, 255, 0)
+        self.curve_point_color = (0, 0, 255)
+        self.x_end = 100
 
     def add_track_line(self, steer_angle, frame=None):
-        """Used for getting the end of track line
+        """Used for getting the coordinates of each pixel on track lines
 
         Args:
             steer_angle: Current steering angle of front wheel.
             frame: Current video frame.
 
         Returns:
-            curve_pixel_left: A list whose size is height of the frame.
-                The i-th value is the col value of the pixel of left line in the i-th row.
-            curve_pixel_right: A list whose size is height of the frame.
-                The i-th value is the col value of the pixel of right line in the i-th row.
+            curve_pixel_left: A list whose size is the height of the frame.
+                The i-th value is the col value of the pixel of left line in the i-th row. If the i-th value is zero,
+                it means that the line doesn't reach the i-th row.
+            curve_pixel_right: A list whose size is the height of the frame.
+                The i-th value is the col value of the pixel of right line in the i-th row. If the i-th value is zero,
+                it means that the line doesn't reach the i-th row.
         """
         # Set scatter's xyz position on the line in real world
         x_start = self.base_param.head_to_back_wheel_d
-        x_end = 100
+        x_end = self.x_end
         y_range = self.base_param.tread / 2.0
         z_pos = self.base_param.head_height
         point_num = int(x_end) - int(x_start)
+        # Returns num evenly spaced samples, calculated over the interval [x_start, x_end]
         line_world_y = np.linspace(x_start, x_end, point_num)
         line_world_left_x = np.ones(point_num)
         line_world_right_x = np.ones(point_num)
-        line_point_count = 0
+        curve_point_count_left = 0
+        curve_point_count_right = 0
 
         # Calculate track line point's x in real world if the steer angle is non-zero
         # In this version, steer_angle is always 0
         self.steer_angle = self.steer_angle_rectify(steer_angle)
-        if self.steer_angle != 0:
+        if self.dir != MID:
             length = line_world_y.shape[0]
-            try:
-                for i in range(length):
-                    line_world_left_x[i] = self.get_line_left_x_real_world(line_world_y[i])
-                    line_world_right_x[i] = self.get_line_right_x_real_world(line_world_y[i])
-                    line_point_count += 1
-            except ValueError:
-                # print("value error")
-                pass
+            left_end_mark = False
+            right_end_mark = False
+            for i in range(length):
+                try:
+                    if not left_end_mark:
+                        line_world_left_x[i] = self.get_line_left_x_real_world(line_world_y[i])
+                        curve_point_count_left += 1
+                except ValueError:
+                    # This exception will happen when line_world_y[i] exceeds the largest y on the trajectory.And the remain
+                    # line_world_y is keep its' default value 1, and these points would be filtered in get_curve() by the
+                    # boundary bottom_y.
+                    # print("value error")
+                    left_end_mark = True
+                    pass
+                try:
+                    if not right_end_mark :
+                        line_world_right_x[i] = self.get_line_right_x_real_world(line_world_y[i])
+                        curve_point_count_right += 1
+                except ValueError:
+                    # This exception will happen when line_world_y[i] exceeds the largest y on the trajectory.And the remain
+                    # line_world_y is keep its' default value 1, and these points would be filtered in get_curve() by the
+                    # boundary bottom_y.
+                    # print("value error")
+                    right_end_mark = True
+                    pass
+
+
+
+
         else:
             line_world_left_x = y_range * line_world_left_x
             line_world_right_x = (-y_range) * line_world_right_x
-            line_point_count = point_num
 
         # Transform left and right line real world coordinates to pixel coordinates on frame by transform matrix in
         # calibration which ignores camera distortion. [x,y,z,1]
@@ -104,10 +134,9 @@ class NewTrackLineGenerator:
                                                            tuple(cross_p), tuple(line_right_bottom_p),
                                                            self.base_param.screen_h, self.base_param.screen_w )
         else:
-            #curve_pixel_left, curve_pixel_right = get_curve_by_fitted(line_pixel_left, line_pixel_right,
-                                                                      #line_bottom_y, self.base_param.screen_h, cross_t=2)
             curve_pixel_left, curve_pixel_right = get_curve(line_pixel_left, line_pixel_right,
-                                                            self.base_param.screen_h, self.base_param.screen_w , line_bottom_y)
+                                                            self.base_param.screen_h, self.base_param.screen_w ,
+                                                            line_bottom_y, curve_point_count_left, curve_point_count_right)
 
         # This part is used for testing convenience
         if frame is not None:
@@ -116,51 +145,78 @@ class NewTrackLineGenerator:
             #     cv2.circle(frame,(int(line_pixel_right[0][i]), int(line_pixel_right[1][i])),radius=3, color=(0,0,255),thickness=-1)
             if self.dir == MID:
                 cv2.line(frame, (int(cross_p[0]), int(cross_p[1])),
-                         (line_left_bottom_p[0], line_left_bottom_p[1]), color=(0, 255, 0), thickness=2)
+                         (line_left_bottom_p[0], line_left_bottom_p[1]), color=self.line_color, thickness=2)
                 cv2.line(frame, (int(cross_p[0]), int(cross_p[1])),
-                         (line_right_bottom_p[0], line_right_bottom_p[1]), color=(0, 255, 0), thickness=2)
+                         (line_right_bottom_p[0], line_right_bottom_p[1]), color=self.line_color, thickness=2)
             else:
-                for i in range(len(line_pixel_right[0])):
-                    cv2.circle(frame, (int(line_pixel_right[0][i]), int(line_pixel_right[1][i])), radius=2, color=(0, 0, 255), thickness=-1)
-                    cv2.circle(frame,  (int(line_pixel_left[0][i]), int(line_pixel_left[1][i])), radius=2, color=(0, 0, 255), thickness=-1)
+                # for i in range(len(line_pixel_right[0])):
+                #     if i < curve_point_count_right :
+                #         cv2.circle(frame, (int(line_pixel_right[0][i]), int(line_pixel_right[1][i])), radius=2, color=self.curve_point_color, thickness=-1)
+                #     if i < curve_point_count_left :
+                #         cv2.circle(frame,  (int(line_pixel_left[0][i]), int(line_pixel_left[1][i])), radius=2, color=self.curve_point_color , thickness=-1)
                 for i in range(self.base_param.screen_h):
-                    if(i < line_bottom_y and curve_pixel_left[i] != 0):
-                        cv2.circle(frame,(curve_pixel_left[i],i),radius= 1, color=(0, 255, 0), thickness= -1)
-                        cv2.circle(frame, (curve_pixel_right[i], i), radius=1, color=(0, 255, 0), thickness=-1)
+                    if i < line_bottom_y and curve_pixel_left[i] != 0:
+                        cv2.circle(frame,(curve_pixel_left[i],i),radius= 1, color=self.line_color, thickness= -1)
+                        cv2.circle(frame, (curve_pixel_right[i], i), radius=1, color=self.line_color, thickness=-1)
             cv2.imwrite('/Users/oumingfeng/Documents/lab/HW/world_to_image/test.jpg', frame)
 
         return curve_pixel_left, curve_pixel_right
 
     def get_line_left_x_real_world(self, y):
+        """Used for getting real world x coordinate at vertical distance of the left line
+
+        Args:
+            y: Point's vertical distance in the real world, the same as x coordinate in vehicle coordinate system.
+
+        Returns:
+            x: float value, the point's horizontal distance in the real world, the same as y coordinate
+            in vehicle coordinate system.
+        """
         r2 = math.pow((self.base_param.wheelbase * self.cot(self.steer_angle) - self.dir * self.base_param.tread / 2),
                       2) \
              + math.pow((self.base_param.front_wheel_to_head_d + self.base_param.wheelbase), 2)
         return self.cal_x(r2, y)
 
     def get_line_right_x_real_world(self, y):
+        """Used for getting real world x coordinate at vertical distance of the right line
+
+          Args:
+              y: Point's vertical distance in the real world, the same as x coordinate in vehicle coordinate system.
+
+          Returns:
+              x: float value, the point's horizontal distance in the real world, the same as y coordinate
+              in vehicle coordinate system.
+          """
         r2 = math.pow((self.base_param.wheelbase * self.cot(self.steer_angle) + self.dir * self.base_param.tread / 2),
                       2) \
              + math.pow((self.base_param.front_wheel_to_head_d + self.base_param.wheelbase), 2)
         return self.cal_x(r2, y)
 
     def cal_x(self, r2, y):
-        first = r2 - math.pow(y + self.base_param.front_wheel_to_head_d + self.base_param.wheelbase
-                              - self.base_param.camera_to_head_d, 2)
+        first = r2 - math.pow(y, 2)
         # math.pow(wheelbase*cot(steer_angle)+tread/2) - math.pow(y+front_wheel_to_head_d+wheelbase)
         return (-self.dir) * math.pow(first, 0.5) + self.dir * self.base_param.wheelbase * self.cot(self.steer_angle)
 
     def steer_angle_rectify(self, steer_angle):
-        steer_angle = steer_angle + 0.2
+        """Rectify the steer angle because steer angle usually has a offset
+
+        Args:
+            steer_angle: Steer angle of font wheel
+
+        Returns:
+            Steer angle(radian)
+        """
+        steer_angle = steer_angle #+ 0.2
         if steer_angle < 0:
             self.dir = RIGHT
         else:
             self.dir = LEFT
         steer_angle = math.fabs(steer_angle)
-        if steer_angle <= 0.3:
+        if steer_angle <= 0.01:
             # print(steer_angle)
             steer_angle = 0
             self.dir = MID
-        return math.radians(steer_angle)
+        return steer_angle
 
     def cot(self, x):
         return 1 / math.tan(x)
@@ -243,7 +299,7 @@ def test():
         c = c + 1
         rval, frame = vc.read()
         if c == 100:
-            result = track_line_generator.add_track_line(0,frame)
+            result = track_line_generator.add_track_line(0.1, frame)
             #print(result)
             break
     vc.release()

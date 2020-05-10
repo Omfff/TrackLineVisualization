@@ -7,8 +7,8 @@ class BaseParam:
 
     Attributes:
         cam_param: A BaseParam class contains all the necessary car and camera parameters.
-        screen_w: Steering angle of front wheel.
-        screen_h: Go straight or turn left or turn left.
+        screen_w: Width of the frame resolution.
+        screen_h: Height of the frame resolution.
         camera_h: Camera z position in vehicle coordinate.(meters)
         tread: Car width (meters).
         wheelbase: The distance between the front and rear axles of a vehicle
