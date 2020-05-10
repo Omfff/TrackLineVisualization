@@ -90,10 +90,6 @@ class NewTrackLineGenerator:
                     # print("value error")
                     right_end_mark = True
                     pass
-
-
-
-
         else:
             line_world_left_x = y_range * line_world_left_x
             line_world_right_x = (-y_range) * line_world_right_x
@@ -299,7 +295,7 @@ def test():
         c = c + 1
         rval, frame = vc.read()
         if c == 100:
-            result = track_line_generator.add_track_line(0.1, frame)
+            result = track_line_generator.add_track_line(0.3, frame)
             #print(result)
             break
     vc.release()

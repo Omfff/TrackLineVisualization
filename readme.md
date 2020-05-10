@@ -13,6 +13,8 @@
   + yaml 0.1.7
   + Opencv 3.4.2
 
+
+
 ## Usage
 
 ### Testing 
@@ -52,17 +54,48 @@ track_line_generator = NewTrackLineGenerator(base_param)
 left_line,right_line = track_line_generator.add_track_line(steer_angle)
 ```
 
+
+
 ## Visualization Example
 
-<figure class="third">          <img src="./test_result/audi_a8l_1920Bonnent.jpg" width="30%">  <img src="./test_result/audi_a6l_1440Bonnet.jpg" width="30%">   <img src="./test_result/Magotan2_1920NoBonnet.jpg" width="30%"> </figure>
+Sample results cannot be displayed due to data privacy.
+
+
 
 ## Deficiencies and Bugs
 
 **Deficiencies**
 
 1. trajectory equation
-2. transform matrix is estimated without considering distortion
+
+   + Curve left: $\left.x^{2}+(y+wheelbase * \cot (\phi)\right)^{2}=r_{L}^{2}$
+     Curve Right: $x^{2}+(y+wheelbase * \cot (\phi))^{2}=r_{R}^{2}$
+
+   + $r_{L}^{2} = \left(wheelbase * \cot (\phi)+\frac{tread}{2}\right)^{2}+(wheelbase + front\_wheel\_to\_head )^{2}$ 
+
+     $r_{R}^{2} = \left(wheelbase * \cot (\phi)-\frac{tread}{2}\right)^{2}+(wheelbase + front\_wheel\_to\_head )^{2}$ 
+
+   <img src="readme.assets/IMG_4C4674A66797-1.jpeg" alt="IMG_4C4674A66797-1" style="zoom: 33%;" />
+
+2. transform matrix is estimated without considering distortion $\mathcal{D}$
+
+   + $X_{w}, Y_{w}, Z_{w}$ is the  coordinates of track point in the real world (under vehicle coordinate system).
+   + $u,v$ is the coordinates of pixel point  corresponding to $X_{w}, Y_{w}, Z_{w}$.
+
+   <img src="readme.assets/image-20200510230711448.png" alt="image-20200510230711448" style="zoom:50%;" />
+
+   + The reason for ignore  distortion $\mathcal{D}$ is that $\mathcal{D}$ cannot be represented by matrix multiplication ($\mathcal{D}$ is:
+
+     $\left\{\begin{array}{l}x_{d}=x_{n}\left(1+k_{1} r^{2}+k_{2} r^{4}\right)+2 \rho_{1} x_{n} y_{n}+\rho_{2}\left(r^{2}+2 x_{n}^{2}\right)+x_{n} k_{3} r^{6} \\ y_{d}=y_{n}\left(1+k_{1} r^{2}+k_{2} r^{4}\right)+2 \rho_{2} x_{n} y_{n}+\rho_{1}\left(r^{2}+2 y_{n}^{2}\right)+y_{n} k_{3} r^{6}\end{array}\right.$
+
+     $k_{1}, k_{2}, \rho_{1}, \rho_{2}, k_{3}$ are distortion parameters.
 
 **Bugs**
 
 1. The current change matrix is fixed. However, translation vector should be different with the one obtained afther calibration, and we doesn't know the plane's position when  calibration.
+
+## Appendix
+
+<img src="readme.assets/image-20200511000921161.png" alt="image-20200511000921161" style="zoom: 25%;" />
+
+<img src="readme.assets/image-20200511001013069.png" alt="image-20200511001013069" style="zoom: 25%;" />
