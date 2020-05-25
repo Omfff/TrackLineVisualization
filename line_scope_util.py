@@ -3,7 +3,7 @@ import numpy as np
 
 
 def get_line_scope(start,end,height, width, img=None,isShow=False):
-    """ Obtained pixel col coordinate of each row on the line the two endpoints of the line.
+    """ Obtained pixel col coordinate of each row between the two endpoints of the line.
 
     Args:
         start: The top end pixel of the line
@@ -29,7 +29,7 @@ def get_line_scope(start,end,height, width, img=None,isShow=False):
 
 
 def get_line(start_l, end_l, start_r, end_r, height, width):
-    """
+    """Obtained pixel col coordinate of each row  between the two endpoints of left and right line.
 
     Args:
         start_l: The top end pixel of the left line

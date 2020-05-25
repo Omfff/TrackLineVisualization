@@ -48,6 +48,8 @@ class CameraParam:
             self.translation_vec = np.reshape(translation_vec, (3, 1))
             transform_veh2image_matrix = np.array(para_dic['transform_veh2image_matrix']['data'])
             self.transform_veh2image_matrix = np.reshape(transform_veh2image_matrix, (3, 4))
+            transform_image2veh_matrix = np.array(para_dic['transform_image2veh_matrix']['data'])
+            self.transform_image2veh_matrix = np.reshape(transform_image2veh_matrix, (3, 3))
 
     def get_tf_matrix(self):
         """
@@ -59,10 +61,35 @@ class CameraParam:
         """
         return np.dot(self.intrinsics, np.hstack((self.rotation_matrix, self.translation_vec)))
 
+    def get_img_to_world_matrix(self):
+        """
+        Calculate transform matrix that could convert image plane's pixel coordinates to real world coordinates
+
+        Returns:
+            transform matrix: ndarray, whose shape is 3x3
+        """
+        tf_matrix = np.delete(self.transform_veh2image_matrix, 2, axis=1)
+        return  np.linalg.pinv(tf_matrix)
+
+
 def convert_to_intrinsics_matrix(intrinsics):
     # intrinsics 1x4
     intrinsics_matrix = np.array([[intrinsics[0], 0, intrinsics[2]],[0, intrinsics[1], intrinsics[3]],[0, 0, 1]])
     return intrinsics_matrix
 
+
 if __name__ == "__main__":
     file_path = "/Users/oumingfeng/Documents/lab/HW/data/1440Bonnet.yaml"
+    cam = CameraParam(file_path)
+    transform_veh2image_matrix = np.delete(cam.transform_veh2image_matrix, 2, axis=1)
+    print(np.linalg.matrix_rank(transform_veh2image_matrix))
+    print(np.linalg.pinv(transform_veh2image_matrix))
+    print(cam.transform_image2veh_matrix)
+    pixel_point = np.stack((np.ones(500), np.linspace(1200, 300, 500), np.ones(500)))
+    pixel_point[0] = pixel_point[0]*750
+    # x y 1 in car coordinate system
+    world_point = np.dot(cam.transform_image2veh_matrix ,pixel_point)
+    for i in range(500):
+        print(world_point[0][i]/world_point[2][i], world_point[1][i]/world_point[2][i], world_point[2][i])
+    print(world_point)
+
